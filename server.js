@@ -9,10 +9,16 @@ const {
   printRoles,
   printEmployees,
 } = require("./assets/js/printFunctions");
-
-const { addDepartment, addRole } = require("./assets/js/addFunctions");
-
-const { deleteDepartment, deleteRole } = require("./assets/js/deleteFunctions");
+const {
+  addDepartment,
+  addRole,
+  addEmployee,
+} = require("./assets/js/addFunctions");
+const {
+  deleteDepartment,
+  deleteRole,
+  deleteEmployee,
+} = require("./assets/js/deleteFunctions");
 
 //TODO: Write notation
 const PORT = process.env.PORT || 3001;
@@ -33,8 +39,17 @@ const db = mysql.createConnection(
   console.log(`Connected to the employee_tracker_db database.`)
 );
 
+function convertNametoID(answers, departmentNames) {
+  for (let i = 0; i < departmentNames.length; i++)
+    if (answers.addRoleDepartment === departmentNames[i]) {
+      answers.addRoleDepartment = i + 1;
+      break;
+    }
+  return answers;
+}
+
 // Selects a function based on answers to the prompt.
-async function pickaction(answers) {
+async function pickaction(answers, departmentNames, roleTitles) {
   if (answers.action === "View all departments") {
     printDepartments(db, reInit);
   } else if (answers.action === "View all roles") {
@@ -44,6 +59,8 @@ async function pickaction(answers) {
   } else if (answers.action === "Add a department") {
     addDepartment(answers, db, reInit);
   } else if (answers.action === "Add a role") {
+    console.log(departmentNames[1]);
+    convertNametoID(answers, departmentNames);
     addRole(answers, db, reInit);
   } else if (answers.action === "Delete a department") {
     deleteDepartment(answers, db, reInit);
@@ -78,6 +95,7 @@ async function init() {
   // Gets db names for list style questions that require them.
   db.query(`SELECT name FROM department;`, (err, result) => {
     const departmentNames = result.map((department) => department.name);
+    console.log(departmentNames[1]);
     db.query(`SELECT title FROM role;`, (err, result) => {
       const roleTitles = result.map((role) => role.title);
 
@@ -97,6 +115,7 @@ async function init() {
               "Update an employee role",
               "Delete a department",
               "Delete a role",
+              "Delete an employee",
             ],
           },
           {
@@ -117,7 +136,6 @@ async function init() {
             type: "input",
             when: (answers) => answers.action === "Add a role",
           },
-          //TODO: This breaks because department.name is not an INT. Need to figure out how to reverse engineer this back to a department.id.
           {
             name: "addRoleDepartment",
             message: "What department is the new role in?",
@@ -141,7 +159,7 @@ async function init() {
           },
         ])
         .then((answers) => {
-          pickaction(answers);
+          pickaction(answers, departmentNames, roleTitles);
         });
     });
   });
