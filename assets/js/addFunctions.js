@@ -66,23 +66,39 @@ async function addEmployee(answers, db, reInit) {
         return;
       }
       const roleId = results[0].id;
+      console.log(answers.addEmployeeManager);
       db.query(
-        `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);`,
-        [
-          answers.addEmployeeFirstName,
-          answers.addEmployeeLastName,
-          roleId,
-          answers.addEmployeeManager,
-        ],
-        function (err) {
+        `SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = ?;`,
+        [answers.addEmployeeManager],
+        function (err, results) {
           if (err) {
             console.error(err);
             return;
           }
-          console.log(
-            `${answers.addEmployeeFirstName} ${answers.addEmployeeLastName} has been added as a new employee.`
+          if (results.length === 0) {
+            console.error("Manager not found.");
+            return;
+          }
+          const managerId = results[0].id;
+          db.query(
+            `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);`,
+            [
+              answers.addEmployeeFirstName,
+              answers.addEmployeeLastName,
+              roleId,
+              managerId,
+            ],
+            function (err) {
+              if (err) {
+                console.error(err);
+                return;
+              }
+              console.log(
+                `${answers.addEmployeeFirstName} ${answers.addEmployeeLastName} has been added as a new employee.`
+              );
+              reInit();
+            }
           );
-          reInit();
         }
       );
     }

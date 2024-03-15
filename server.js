@@ -46,33 +46,6 @@ const db = mysql.createConnection(
   console.log(`Connected to the employee_tracker_db database.`)
 );
 
-//! This may not be working perfectly if the order of roleTitles doesn't always go by ID.
-//! This could likely better follow DRY principles.
-function convertFullNametoID(answers, employeeNames) {
-  for (let i = 0; i < employeeNames.length; i++)
-    if (answers.addEmployeeManager === employeeNames[i]) {
-      answers.addEmployeeManager = i + 1;
-      break;
-    }
-  if (answers.addEmployeeManager === "None") {
-    answers.addEmployeeManager = null;
-  }
-  for (let i = 0; i < employeeNames.length; i++)
-    if (answers.updateEmployeeManagerManagerName === employeeNames[i]) {
-      answers.updateEmployeeManagerManagerName = i + 1;
-      break;
-    }
-  if (answers.updateEmployeeManagerManagerName === "None") {
-    answers.updateEmployeeManagerManagerName = null;
-  }
-  for (let i = 0; i < employeeNames.length; i++)
-    if (answers.viewEmployeesManagerName === employeeNames[i]) {
-      answers.viewEmployeesManagerName = i + 1;
-      break;
-    }
-  return answers;
-}
-
 // Selects a function based on answers to the prompt.
 async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
   if (answers.action === "View all departments") {
@@ -82,7 +55,6 @@ async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
   } else if (answers.action === "View all employees") {
     printEmployees(db, reInit);
   } else if (answers.action === "View employees by manager") {
-    convertFullNametoID(answers, employeeNames);
     printEmployeesbyManager(answers, db, reInit);
   } else if (answers.action === "View employees by department") {
     printEmployeesbyDepartment(answers, db, reInit);
@@ -93,12 +65,10 @@ async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
   } else if (answers.action === "Add a role") {
     addRole(answers, db, reInit);
   } else if (answers.action === "Add an employee") {
-    convertFullNametoID(answers, employeeNames);
     addEmployee(answers, db, reInit);
   } else if (answers.action === "Update an employee role") {
     updateEmployeeRole(answers, db, reInit);
   } else if (answers.action === "Update an employee manager") {
-    convertFullNametoID(answers, employeeNames);
     updateEmployeeManager(answers, db, reInit);
   } else if (answers.action === "Delete a department") {
     deleteDepartment(answers, db, reInit);

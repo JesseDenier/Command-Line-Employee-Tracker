@@ -148,7 +148,7 @@ async function printEmployees(db, reInit) {
 // Prints employees of a specific manager.
 async function printEmployeesbyManager(answers, db, reInit) {
   db.query(
-    `SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee WHERE manager_id = ?;`,
+    `SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = ?;`,
     [answers.viewEmployeesManagerName],
     function (err, results) {
       if (err) {
@@ -156,18 +156,35 @@ async function printEmployeesbyManager(answers, db, reInit) {
         return;
       }
       if (results.length === 0) {
-        console.log(`No employees work under this employee.`);
-      } else {
-        console.log("+----+--------------------+");
-        console.log("| id | name               |");
-        console.log("+----+--------------------+");
-        results.forEach((row) => {
-          const { id, name } = row;
-          console.log(`| ${id.toString().padStart(2)} | ${name.padEnd(18)} |`);
-        });
-        console.log("+----+--------------------+");
+        console.error("Role not found.");
+        return;
       }
-      reInit();
+      const managerId = results[0].id;
+      db.query(
+        `SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee WHERE manager_id = ?;`,
+        [managerId],
+        function (err, results) {
+          if (err) {
+            console.error(err);
+            return;
+          }
+          if (results.length === 0) {
+            console.log(`No employees work under this employee.`);
+          } else {
+            console.log("+----+--------------------+");
+            console.log("| id | name               |");
+            console.log("+----+--------------------+");
+            results.forEach((row) => {
+              const { id, name } = row;
+              console.log(
+                `| ${id.toString().padStart(2)} | ${name.padEnd(18)} |`
+              );
+            });
+            console.log("+----+--------------------+");
+          }
+          reInit();
+        }
+      );
     }
   );
 }
