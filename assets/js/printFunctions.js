@@ -44,6 +44,7 @@ async function printRoles(db, reInit) {
   );
 }
 
+// Prints all employees in a nicely formatted box.
 async function printEmployees(db, reInit) {
   db.query(
     "SELECT employee.id, CONCAT(employee.first_name, ' ', employee.last_name) as name, CONCAT(manager.first_name, ' ', manager.last_name) AS manager, role.title AS title, role.salary AS salary, department.name AS department FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id",
@@ -144,4 +145,36 @@ async function printEmployees(db, reInit) {
   );
 }
 
-module.exports = { printDepartments, printRoles, printEmployees };
+// Prints employees of a specific manager.
+async function printEmployeesbyManager(answers, db, reInit) {
+  db.query(
+    `SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee WHERE manager_id = ?;`,
+    [answers.viewEmployeesManagerName],
+    function (err, results) {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      if (results.length === 0) {
+        console.log(`No employees work under this employee.`);
+      } else {
+        console.log("+----+--------------------+");
+        console.log("| id | name               |");
+        console.log("+----+--------------------+");
+        results.forEach((row) => {
+          const { id, name } = row;
+          console.log(`| ${id.toString().padStart(2)} | ${name.padEnd(18)} |`);
+        });
+        console.log("+----+--------------------+");
+      }
+      reInit();
+    }
+  );
+}
+
+module.exports = {
+  printDepartments,
+  printRoles,
+  printEmployees,
+  printEmployeesbyManager,
+};

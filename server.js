@@ -8,6 +8,7 @@ const {
   printDepartments,
   printRoles,
   printEmployees,
+  printEmployeesbyManager,
 } = require("./assets/js/printFunctions");
 const {
   addDepartment,
@@ -69,6 +70,7 @@ function convertTitletoID(answers, roleTitles) {
 }
 
 //! This may not be working perfectly if the order of roleTitles doesn't always go by ID.
+//! This could likely better follow DRY principles.
 function convertFullNametoID(answers, employeeNames) {
   for (let i = 0; i < employeeNames.length; i++)
     if (answers.addEmployeeManager === employeeNames[i]) {
@@ -86,6 +88,11 @@ function convertFullNametoID(answers, employeeNames) {
   if (answers.updateEmployeeManagerManagerName === "None") {
     answers.updateEmployeeManagerManagerName = null;
   }
+  for (let i = 0; i < employeeNames.length; i++)
+    if (answers.viewEmployeesManagerName === employeeNames[i]) {
+      answers.viewEmployeesManagerName = i + 1;
+      break;
+    }
   return answers;
 }
 
@@ -97,6 +104,9 @@ async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
     printRoles(db, reInit);
   } else if (answers.action === "View all employees") {
     printEmployees(db, reInit);
+  } else if (answers.action === "View employees by manager") {
+    convertFullNametoID(answers, employeeNames);
+    printEmployeesbyManager(answers, db, reInit);
   } else if (answers.action === "Add a department") {
     addDepartment(answers, db, reInit);
   } else if (answers.action === "Add a role") {
@@ -166,6 +176,7 @@ async function init() {
                   "View all departments",
                   "View all roles",
                   "View all employees",
+                  "View employees by manager",
                   "Add a department",
                   "Add a role",
                   "Add an employee",
@@ -175,6 +186,15 @@ async function init() {
                   "Delete a role",
                   "Delete an employee",
                 ],
+              },
+              {
+                name: "viewEmployeesManagerName",
+                message:
+                  "Which manager would you like to see the employees of?",
+                type: "list",
+                choices: employeeNames,
+                when: (answers) =>
+                  answers.action === "View employees by manager",
               },
               {
                 name: "addDepartmentName",
