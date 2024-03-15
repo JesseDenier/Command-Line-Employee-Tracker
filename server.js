@@ -58,11 +58,6 @@ function convertNametoID(answers, departmentNames) {
       answers.viewEmployeesDepartmentName = i + 1;
       break;
     }
-  for (let i = 0; i < departmentNames.length; i++)
-    if (answers.viewDepartmentBudgetDepartmentName === departmentNames[i]) {
-      answers.viewDepartmentBudgetDepartmentName = i + 1;
-      break;
-    }
   return answers;
 }
 
@@ -123,7 +118,6 @@ async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
     convertNametoID(answers, departmentNames);
     printEmployeesbyDepartment(answers, db, reInit);
   } else if (answers.action === "View department budget") {
-    //convertNametoID(answers, departmentNames);
     printDepartmentBudget(answers, db, reInit);
   } else if (answers.action === "Add a department") {
     addDepartment(answers, db, reInit);

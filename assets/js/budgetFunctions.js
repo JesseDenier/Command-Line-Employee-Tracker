@@ -7,7 +7,17 @@ async function printDepartmentBudget(answers, db, reInit) {
       if (err) {
         console.error(err);
         return;
-      } else console.log(results);
+      } else console.log("+-----------------+---------+");
+      console.log("| Department      | Budget  |");
+      console.log("+-----------------+---------+");
+      results.forEach((row) => {
+        const { name, budget } = row;
+        console.log(
+          `| ${name.padEnd(15)} | ${budget.toString().padStart(7)} |`
+        );
+      });
+      console.log("+-----------------+---------+");
+
       reInit();
     }
   );
