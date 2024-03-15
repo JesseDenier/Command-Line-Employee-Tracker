@@ -160,19 +160,29 @@ async function init() {
               {
                 name: "addDepartmentName",
                 message: "What is the name of the new department?",
-                type: "input",
+                type: "maxLength",
+                maxLength: 30,
                 when: (answers) => answers.action === "Add a department",
               },
               {
                 name: "addRoleTitle",
                 message: "What is the title of the new role?",
-                type: "input",
+                type: "maxLength",
+                maxLength: 30,
                 when: (answers) => answers.action === "Add a role",
               },
               {
                 name: "addRoleSalary",
                 message: "What is the salary of the new role?",
                 type: "input",
+                validate: function (value) {
+                  // Check if the input is a number
+                  if (!isNaN(parseFloat(value)) && isFinite(value)) {
+                    return true;
+                  } else {
+                    return "Please enter a valid number for the salary.";
+                  }
+                },
                 when: (answers) => answers.action === "Add a role",
               },
               {
