@@ -71,44 +71,50 @@ function reInit() {
 
 // On application load asks the user what task they need to complete.
 async function init() {
-  inquirer
-    .prompt([
-      {
-        name: "action",
-        message: "What would you like to do?",
-        type: "list",
-        choices: [
-          "View all departments",
-          "View all roles",
-          "View all employees",
-          "Add a department",
-          "Add a role",
-          "Add an employee",
-          "Update an employee role",
-          "Delete a department",
-        ],
-      },
-      {
-        name: "addDepartmentName",
-        message: "What is the name of the new department?",
-        type: "maxLength",
-        maxLength: 15,
-        when: (answers) => answers.action === "Add a department",
-      },
-      {
-        name: "deleteDepartmentName",
-        message: "What department would you like to delete?",
-        type: "maxLength",
-        maxLength: 15,
-        when: (answers) => answers.action === "Delete a department",
-      },
-    ])
-    .then((answers) => {
-      pickaction(answers);
-    });
+  // Gets all the database names for list style questions that require them.
+  db.query(`SELECT name FROM department;`, (err, result) => {
+    const departmentNames = result.map((department) => department.name);
+
+    inquirer
+      .prompt([
+        {
+          name: "action",
+          message: "What would you like to do?",
+          type: "list",
+          choices: [
+            "View all departments",
+            "View all roles",
+            "View all employees",
+            "Add a department",
+            "Add a role",
+            "Add an employee",
+            "Update an employee role",
+            "Delete a department",
+          ],
+        },
+        {
+          name: "addDepartmentName",
+          message: "What is the name of the new department?",
+          type: "maxLength",
+          maxLength: 15,
+          when: (answers) => answers.action === "Add a department",
+        },
+        {
+          name: "deleteDepartmentName",
+          message: "Which department would you like to delete?",
+          type: "list",
+          choices: departmentNames,
+          when: (answers) => answers.action === "Delete a department",
+        },
+      ])
+      .then((answers) => {
+        pickaction(answers);
+      });
+  });
 }
 
 init();
+
 //TODO: Add notation.
 //TODO: Stop blocking this out but keep it from messing up init.
 // app.listen(PORT, () => {

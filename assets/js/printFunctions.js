@@ -1,3 +1,4 @@
+//! Alot of this was created with CHATGPT to get the console.log styling correct.
 // Prints all departments in a nicely formatted box.
 async function printDepartments(db, reInit) {
   db.query("SELECT id, name FROM department", function (err, results) {
