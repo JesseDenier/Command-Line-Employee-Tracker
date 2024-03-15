@@ -25,21 +25,46 @@ const db = mysql.createConnection(
 // Requests to see all departments.
 async function viewdepartments() {
   db.query("SELECT id, name FROM department", function (err, results) {
-    console.log("\nID\tName\n---\t----------");
-    for (let i = 0; i < results.length; i++) {
-      console.log(results[i].id + "\t" + results[i].name);
+    if (err) {
+      console.error(err);
+      return;
     }
-    console.log(" ");
+    console.log("+----+--------------------+");
+    console.log("| id | name               |");
+    console.log("+----+--------------------+");
+    results.forEach((row) => {
+      const { id, name } = row;
+      console.log(`| ${id.toString().padStart(2)} | ${name.padEnd(18)} |`);
+    });
+    console.log("+----+--------------------+");
     reinit();
   });
 }
 
-// Requests to see all roles.
+// Shows all roles in a nicely formatted box.
 async function viewroles() {
-  db.query("SELECT id, title, salary FROM role", function (err, results) {
-    console.table(results);
-    reinit();
-  });
+  db.query(
+    "SELECT role.id, role.title, role.salary, department.name AS department FROM role JOIN department ON role.department_id = department.id",
+    function (err, results) {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      console.log("+----+--------------------+--------+-----------------+");
+      console.log("| id | title              | salary | department      |");
+      console.log("+----+--------------------+--------+-----------------+");
+      results.forEach((row) => {
+        const { id, title, salary, department } = row;
+        console.log(
+          `| ${id.toString().padStart(2)} | ${title.padEnd(18)} | ${salary
+            .toString()
+            .padStart(6)} | ${department.toString().padStart(15)} |`
+        );
+      });
+      console.log("+----+--------------------+--------+-----------------+");
+      reinit();
+    }
+  );
 }
 
 // Selects a function based on answers to the prompt.
@@ -96,3 +121,8 @@ function init() {
 }
 
 init();
+
+//TODO: Add notation
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
