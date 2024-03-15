@@ -19,6 +19,7 @@ const {
   deleteRole,
   deleteEmployee,
 } = require("./assets/js/deleteFunctions");
+const { updateEmployeeRole } = require("./assets/js/updateFunctions");
 
 //TODO: Write notation
 const PORT = process.env.PORT || 3001;
@@ -45,8 +46,6 @@ function convertNametoID(answers, departmentNames) {
     if (answers.addRoleDepartment === departmentNames[i]) {
       answers.addRoleDepartment = i + 1;
       break;
-    } else {
-      answers.addRoleDepartment = null;
     }
   return answers;
 }
@@ -56,6 +55,11 @@ function convertTitletoID(answers, roleTitles) {
   for (let i = 0; i < roleTitles.length; i++)
     if (answers.addEmployeeRole === roleTitles[i]) {
       answers.addEmployeeRole = i + 1;
+      break;
+    }
+  for (let i = 0; i < roleTitles.length; i++)
+    if (answers.updateEmployeeRoleRoleTitle === roleTitles[i]) {
+      answers.updateEmployeeRoleRoleTitle = i + 1;
       break;
     }
   return answers;
@@ -68,6 +72,9 @@ function convertFullNametoID(answers, employeeNames) {
       answers.addEmployeeManager = i + 1;
       break;
     }
+  if (answers.addEmployeeManager === "None") {
+    answers.addEmployeeManager = null;
+  }
   return answers;
 }
 
@@ -88,6 +95,9 @@ async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
     convertTitletoID(answers, roleTitles);
     convertFullNametoID(answers, employeeNames);
     addEmployee(answers, db, reInit);
+  } else if (answers.action === "Update an employee role") {
+    convertTitletoID(answers, roleTitles);
+    updateEmployeeRole(answers, db, reInit);
   } else if (answers.action === "Delete a department") {
     deleteDepartment(answers, db, reInit);
   } else if (answers.action === "Delete a role") {
@@ -203,6 +213,20 @@ async function init() {
                 type: "list",
                 choices: ["None"].concat(employeeNames),
                 when: (answers) => answers.action === "Add an employee",
+              },
+              {
+                name: "updateEmployeeRoleEmployeeName",
+                message: "Which employee would you like to update?",
+                type: "list",
+                choices: employeeNames,
+                when: (answers) => answers.action === "Update an employee role",
+              },
+              {
+                name: "updateEmployeeRoleRoleTitle",
+                message: "What role have they been moved to?",
+                type: "list",
+                choices: roleTitles,
+                when: (answers) => answers.action === "Update an employee role",
               },
               {
                 name: "deleteDepartmentName",
