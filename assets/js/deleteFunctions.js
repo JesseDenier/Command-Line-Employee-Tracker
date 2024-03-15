@@ -31,4 +31,21 @@ async function deleteRole(answers, db, reInit) {
   );
 }
 
-module.exports = { deleteDepartment, deleteRole };
+async function deleteEmployee(answers, db, reInit) {
+  db.query(
+    `DELETE FROM employee WHERE CONCAT(first_name, " ", last_name) = ?;`,
+    [answers.deleteEmployeeName],
+    function (err) {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      console.log(
+        `${answers.deleteEmployeeName} has been deleted as an employee.`
+      );
+      reInit();
+    }
+  );
+}
+
+module.exports = { deleteDepartment, deleteRole, deleteEmployee };

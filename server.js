@@ -39,17 +39,40 @@ const db = mysql.createConnection(
   console.log(`Connected to the employee_tracker_db database.`)
 );
 
+//! This may not be working perfectly if the order of departmentNames doesn't always go by ID.
 function convertNametoID(answers, departmentNames) {
   for (let i = 0; i < departmentNames.length; i++)
     if (answers.addRoleDepartment === departmentNames[i]) {
       answers.addRoleDepartment = i + 1;
+      break;
+    } else {
+      answers.addRoleDepartment = null;
+    }
+  return answers;
+}
+
+//! This may not be working perfectly if the order of roleTitles doesn't always go by ID.
+function convertTitletoID(answers, roleTitles) {
+  for (let i = 0; i < roleTitles.length; i++)
+    if (answers.addEmployeeRole === roleTitles[i]) {
+      answers.addEmployeeRole = i + 1;
+      break;
+    }
+  return answers;
+}
+
+//! This may not be working perfectly if the order of roleTitles doesn't always go by ID.
+function convertFullNametoID(answers, employeeNames) {
+  for (let i = 0; i < employeeNames.length; i++)
+    if (answers.addEmployeeManager === employeeNames[i]) {
+      answers.addEmployeeManager = i + 1;
       break;
     }
   return answers;
 }
 
 // Selects a function based on answers to the prompt.
-async function pickaction(answers, departmentNames, roleTitles) {
+async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
   if (answers.action === "View all departments") {
     printDepartments(db, reInit);
   } else if (answers.action === "View all roles") {
@@ -59,13 +82,18 @@ async function pickaction(answers, departmentNames, roleTitles) {
   } else if (answers.action === "Add a department") {
     addDepartment(answers, db, reInit);
   } else if (answers.action === "Add a role") {
-    console.log(departmentNames[1]);
     convertNametoID(answers, departmentNames);
     addRole(answers, db, reInit);
+  } else if (answers.action === "Add an employee") {
+    convertTitletoID(answers, roleTitles);
+    convertFullNametoID(answers, employeeNames);
+    addEmployee(answers, db, reInit);
   } else if (answers.action === "Delete a department") {
     deleteDepartment(answers, db, reInit);
   } else if (answers.action === "Delete a role") {
     deleteRole(answers, db, reInit);
+  } else if (answers.action === "Delete an employee") {
+    deleteEmployee(answers, db, reInit);
   }
 }
 
@@ -95,72 +123,114 @@ async function init() {
   // Gets db names for list style questions that require them.
   db.query(`SELECT name FROM department;`, (err, result) => {
     const departmentNames = result.map((department) => department.name);
-    console.log(departmentNames[1]);
+
     db.query(`SELECT title FROM role;`, (err, result) => {
       const roleTitles = result.map((role) => role.title);
 
-      inquirer
-        .prompt([
-          {
-            name: "action",
-            message: "What would you like to do?",
-            type: "list",
-            choices: [
-              "View all departments",
-              "View all roles",
-              "View all employees",
-              "Add a department",
-              "Add a role",
-              "Add an employee",
-              "Update an employee role",
-              "Delete a department",
-              "Delete a role",
-              "Delete an employee",
-            ],
-          },
-          {
-            name: "addDepartmentName",
-            message: "What is the name of the new department?",
-            type: "input",
-            when: (answers) => answers.action === "Add a department",
-          },
-          {
-            name: "addRoleTitle",
-            message: "What is the title of the new role?",
-            type: "input",
-            when: (answers) => answers.action === "Add a role",
-          },
-          {
-            name: "addRoleSalary",
-            message: "What is the salary of the new role?",
-            type: "input",
-            when: (answers) => answers.action === "Add a role",
-          },
-          {
-            name: "addRoleDepartment",
-            message: "What department is the new role in?",
-            type: "list",
-            choices: departmentNames,
-            when: (answers) => answers.action === "Add a role",
-          },
-          {
-            name: "deleteDepartmentName",
-            message: "Which department would you like to delete?",
-            type: "list",
-            choices: departmentNames,
-            when: (answers) => answers.action === "Delete a department",
-          },
-          {
-            name: "deleteRoleTitle",
-            message: "Which role would you like to delete?",
-            type: "list",
-            choices: roleTitles,
-            when: (answers) => answers.action === "Delete a role",
-          },
-        ])
-        .then((answers) => {
-          pickaction(answers, departmentNames, roleTitles);
-        });
+      db.query(
+        `SELECT CONCAT(first_name, " ", last_name) AS full_name FROM employee;`,
+        (err, result) => {
+          const employeeNames = result.map((employee) => employee.full_name);
+
+          inquirer
+            .prompt([
+              {
+                name: "action",
+                message: "What would you like to do?",
+                type: "list",
+                choices: [
+                  "View all departments",
+                  "View all roles",
+                  "View all employees",
+                  "Add a department",
+                  "Add a role",
+                  "Add an employee",
+                  "Update an employee role",
+                  "Delete a department",
+                  "Delete a role",
+                  "Delete an employee",
+                ],
+              },
+              {
+                name: "addDepartmentName",
+                message: "What is the name of the new department?",
+                type: "input",
+                when: (answers) => answers.action === "Add a department",
+              },
+              {
+                name: "addRoleTitle",
+                message: "What is the title of the new role?",
+                type: "input",
+                when: (answers) => answers.action === "Add a role",
+              },
+              {
+                name: "addRoleSalary",
+                message: "What is the salary of the new role?",
+                type: "input",
+                when: (answers) => answers.action === "Add a role",
+              },
+              {
+                name: "addRoleDepartment",
+                message: "What department is the new role in?",
+                type: "list",
+                choices: departmentNames,
+                when: (answers) => answers.action === "Add a role",
+              },
+              {
+                name: "addEmployeeFirstName",
+                message: "What is the employee's first name?",
+                type: "maxLength",
+                maxLength: 30,
+                when: (answers) => answers.action === "Add an employee",
+              },
+              {
+                name: "addEmployeeLastName",
+                message: "What is the employee's last name?",
+                type: "maxLength",
+                maxLength: 30,
+                when: (answers) => answers.action === "Add an employee",
+              },
+              {
+                name: "addEmployeeRole",
+                message: "What is the employee's role?",
+                type: "list",
+                choices: roleTitles,
+                when: (answers) => answers.action === "Add an employee",
+              },
+              {
+                name: "addEmployeeManager",
+                message: "Who is the employee's manager?",
+                type: "list",
+                choices: ["None"].concat(employeeNames),
+                when: (answers) => answers.action === "Add an employee",
+              },
+              {
+                name: "deleteDepartmentName",
+                message: "Which department would you like to delete?",
+                type: "list",
+                choices: departmentNames,
+                when: (answers) => answers.action === "Delete a department",
+              },
+              {
+                name: "deleteRoleTitle",
+                message: "Which role would you like to delete?",
+                type: "list",
+                choices: roleTitles,
+                when: (answers) => answers.action === "Delete a role",
+              },
+              {
+                name: "deleteEmployeeName",
+                message: "Which employee would you like to delete?",
+                type: "list",
+                choices: employeeNames,
+                when: (answers) => answers.action === "Delete an employee",
+              },
+            ])
+            .then((answers) => {
+              pickaction(answers, departmentNames, roleTitles, employeeNames);
+            });
+        }
+      );
     });
   });
 }
