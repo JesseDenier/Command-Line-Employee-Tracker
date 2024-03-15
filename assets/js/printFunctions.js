@@ -175,7 +175,7 @@ async function printEmployeesbyManager(answers, db, reInit) {
 // Prints employees of a specific department.
 async function printEmployeesbyDepartment(answers, db, reInit) {
   db.query(
-    `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id WHERE department_id = ?;`,
+    `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id WHERE department.name = ?;`,
     [answers.viewEmployeesDepartmentName],
     function (err, results) {
       if (err) {

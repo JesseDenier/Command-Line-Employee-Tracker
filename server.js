@@ -46,36 +46,6 @@ const db = mysql.createConnection(
   console.log(`Connected to the employee_tracker_db database.`)
 );
 
-//! This may not be working perfectly if the order of departmentNames doesn't always go by ID.
-function convertNametoID(answers, departmentNames) {
-  for (let i = 0; i < departmentNames.length; i++)
-    if (answers.addRoleDepartment === departmentNames[i]) {
-      answers.addRoleDepartment = i + 1;
-      break;
-    }
-  for (let i = 0; i < departmentNames.length; i++)
-    if (answers.viewEmployeesDepartmentName === departmentNames[i]) {
-      answers.viewEmployeesDepartmentName = i + 1;
-      break;
-    }
-  return answers;
-}
-
-//! This may not be working perfectly if the order of roleTitles doesn't always go by ID.
-function convertTitletoID(answers, roleTitles) {
-  for (let i = 0; i < roleTitles.length; i++)
-    if (answers.addEmployeeRole === roleTitles[i]) {
-      answers.addEmployeeRole = i + 1;
-      break;
-    }
-  for (let i = 0; i < roleTitles.length; i++)
-    if (answers.updateEmployeeRoleRoleTitle === roleTitles[i]) {
-      answers.updateEmployeeRoleRoleTitle = i + 1;
-      break;
-    }
-  return answers;
-}
-
 //! This may not be working perfectly if the order of roleTitles doesn't always go by ID.
 //! This could likely better follow DRY principles.
 function convertFullNametoID(answers, employeeNames) {
@@ -115,21 +85,17 @@ async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
     convertFullNametoID(answers, employeeNames);
     printEmployeesbyManager(answers, db, reInit);
   } else if (answers.action === "View employees by department") {
-    convertNametoID(answers, departmentNames);
     printEmployeesbyDepartment(answers, db, reInit);
   } else if (answers.action === "View department budget") {
     printDepartmentBudget(answers, db, reInit);
   } else if (answers.action === "Add a department") {
     addDepartment(answers, db, reInit);
   } else if (answers.action === "Add a role") {
-    convertNametoID(answers, departmentNames);
     addRole(answers, db, reInit);
   } else if (answers.action === "Add an employee") {
-    convertTitletoID(answers, roleTitles);
     convertFullNametoID(answers, employeeNames);
     addEmployee(answers, db, reInit);
   } else if (answers.action === "Update an employee role") {
-    convertTitletoID(answers, roleTitles);
     updateEmployeeRole(answers, db, reInit);
   } else if (answers.action === "Update an employee manager") {
     convertFullNametoID(answers, employeeNames);
