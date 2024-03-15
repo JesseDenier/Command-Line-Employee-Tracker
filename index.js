@@ -162,6 +162,12 @@ async function init() {
                 message: "What is the name of the new department?",
                 type: "maxLength",
                 maxLength: 30,
+                validate: function (input) {
+                  if (input.trim() === "") {
+                    return "Please enter a department name.";
+                  }
+                  return true;
+                },
                 when: (answers) => answers.action === "Add a department",
               },
               {
@@ -169,6 +175,12 @@ async function init() {
                 message: "What is the title of the new role?",
                 type: "maxLength",
                 maxLength: 30,
+                validate: function (input) {
+                  if (input.trim() === "") {
+                    return "Please enter a role title.";
+                  }
+                  return true;
+                },
                 when: (answers) => answers.action === "Add a role",
               },
               {
@@ -180,7 +192,7 @@ async function init() {
                   if (!isNaN(parseFloat(value)) && isFinite(value)) {
                     return true;
                   } else {
-                    return "Please enter a valid number for the salary.";
+                    return "Please enter a valid number without any punctuation.";
                   }
                 },
                 when: (answers) => answers.action === "Add a role",
@@ -197,6 +209,12 @@ async function init() {
                 message: "What is the employee's first name?",
                 type: "maxLength",
                 maxLength: 30,
+                validate: function (input) {
+                  if (input.trim() === "") {
+                    return "Please enter a name.";
+                  }
+                  return true;
+                },
                 when: (answers) => answers.action === "Add an employee",
               },
               {
@@ -204,6 +222,12 @@ async function init() {
                 message: "What is the employee's last name?",
                 type: "maxLength",
                 maxLength: 30,
+                validate: function (input) {
+                  if (input.trim() === "") {
+                    return "Please enter a name.";
+                  }
+                  return true;
+                },
                 when: (answers) => answers.action === "Add an employee",
               },
               {
