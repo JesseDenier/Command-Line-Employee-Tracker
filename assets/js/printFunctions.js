@@ -172,9 +172,37 @@ async function printEmployeesbyManager(answers, db, reInit) {
   );
 }
 
+// Prints employees of a specific department.
+async function printEmployeesbyDepartment(answers, db, reInit) {
+  db.query(
+    `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id WHERE department_id = ?;`,
+    [answers.viewEmployeesDepartmentName],
+    function (err, results) {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      if (results.length === 0) {
+        console.log(`No employees work in this department.`);
+      } else {
+        console.log("+----+--------------------+");
+        console.log("| id | name               |");
+        console.log("+----+--------------------+");
+        results.forEach((row) => {
+          const { id, name } = row;
+          console.log(`| ${id.toString().padStart(2)} | ${name.padEnd(18)} |`);
+        });
+        console.log("+----+--------------------+");
+      }
+      reInit();
+    }
+  );
+}
+
 module.exports = {
   printDepartments,
   printRoles,
   printEmployees,
   printEmployeesbyManager,
+  printEmployeesbyDepartment,
 };

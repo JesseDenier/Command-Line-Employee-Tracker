@@ -9,6 +9,7 @@ const {
   printRoles,
   printEmployees,
   printEmployeesbyManager,
+  printEmployeesbyDepartment,
 } = require("./assets/js/printFunctions");
 const {
   addDepartment,
@@ -49,6 +50,11 @@ function convertNametoID(answers, departmentNames) {
   for (let i = 0; i < departmentNames.length; i++)
     if (answers.addRoleDepartment === departmentNames[i]) {
       answers.addRoleDepartment = i + 1;
+      break;
+    }
+  for (let i = 0; i < departmentNames.length; i++)
+    if (answers.viewEmployeesDepartmentName === departmentNames[i]) {
+      answers.viewEmployeesDepartmentName = i + 1;
       break;
     }
   return answers;
@@ -107,6 +113,9 @@ async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
   } else if (answers.action === "View employees by manager") {
     convertFullNametoID(answers, employeeNames);
     printEmployeesbyManager(answers, db, reInit);
+  } else if (answers.action === "View employees by department") {
+    convertNametoID(answers, departmentNames);
+    printEmployeesbyDepartment(answers, db, reInit);
   } else if (answers.action === "Add a department") {
     addDepartment(answers, db, reInit);
   } else if (answers.action === "Add a role") {
@@ -177,6 +186,7 @@ async function init() {
                   "View all roles",
                   "View all employees",
                   "View employees by manager",
+                  "View employees by department",
                   "Add a department",
                   "Add a role",
                   "Add an employee",
@@ -195,6 +205,15 @@ async function init() {
                 choices: employeeNames,
                 when: (answers) =>
                   answers.action === "View employees by manager",
+              },
+              {
+                name: "viewEmployeesDepartmentName",
+                message:
+                  "Which department would you like to see the employees of?",
+                type: "list",
+                choices: departmentNames,
+                when: (answers) =>
+                  answers.action === "View employees by department",
               },
               {
                 name: "addDepartmentName",
