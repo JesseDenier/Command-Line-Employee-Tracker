@@ -19,7 +19,10 @@ const {
   deleteRole,
   deleteEmployee,
 } = require("./assets/js/deleteFunctions");
-const { updateEmployeeRole } = require("./assets/js/updateFunctions");
+const {
+  updateEmployeeRole,
+  updateEmployeeManager,
+} = require("./assets/js/updateFunctions");
 
 //TODO: Write notation
 const PORT = process.env.PORT || 3001;
@@ -75,6 +78,14 @@ function convertFullNametoID(answers, employeeNames) {
   if (answers.addEmployeeManager === "None") {
     answers.addEmployeeManager = null;
   }
+  for (let i = 0; i < employeeNames.length; i++)
+    if (answers.updateEmployeeManagerManagerName === employeeNames[i]) {
+      answers.updateEmployeeManagerManagerName = i + 1;
+      break;
+    }
+  if (answers.updateEmployeeManagerManagerName === "None") {
+    answers.updateEmployeeManagerManagerName = null;
+  }
   return answers;
 }
 
@@ -98,6 +109,9 @@ async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
   } else if (answers.action === "Update an employee role") {
     convertTitletoID(answers, roleTitles);
     updateEmployeeRole(answers, db, reInit);
+  } else if (answers.action === "Update an employee manager") {
+    convertFullNametoID(answers, employeeNames);
+    updateEmployeeManager(answers, db, reInit);
   } else if (answers.action === "Delete a department") {
     deleteDepartment(answers, db, reInit);
   } else if (answers.action === "Delete a role") {
@@ -156,6 +170,7 @@ async function init() {
                   "Add a role",
                   "Add an employee",
                   "Update an employee role",
+                  "Update an employee manager",
                   "Delete a department",
                   "Delete a role",
                   "Delete an employee",
@@ -227,6 +242,22 @@ async function init() {
                 type: "list",
                 choices: roleTitles,
                 when: (answers) => answers.action === "Update an employee role",
+              },
+              {
+                name: "updateEmployeeManagerEmployeeName",
+                message: "Which employee would you like to update?",
+                type: "list",
+                choices: employeeNames,
+                when: (answers) =>
+                  answers.action === "Update an employee manager",
+              },
+              {
+                name: "updateEmployeeManagerManagerName",
+                message: "Which manager will be overseeing them?",
+                type: "list",
+                choices: ["None"].concat(employeeNames),
+                when: (answers) =>
+                  answers.action === "Update an employee manager",
               },
               {
                 name: "deleteDepartmentName",
