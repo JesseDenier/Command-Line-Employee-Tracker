@@ -27,9 +27,6 @@ const {
 } = require("./assets/js/updateFunctions");
 const { printDepartmentBudget } = require("./assets/js/budgetFunctions");
 
-// Configures PORT either as an environment variable or defaults to 3001 for local use.
-const PORT = process.env.PORT || 3001;
-
 // Sets up Express app to handle URL encoded and JSON data parsing.
 const app = express();
 app.use(express.urlencoded({ extended: false }));
@@ -273,10 +270,5 @@ async function init() {
     });
   });
 }
-
-// On start tells the port and this application to listen for requests.
-app.listen(PORT, () => {
-  console.log(`App listening on http://localhost:${PORT}`);
-});
 
 init();
