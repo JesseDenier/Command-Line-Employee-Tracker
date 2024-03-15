@@ -66,41 +66,51 @@ async function addEmployee(answers, db, reInit) {
         return;
       }
       const roleId = results[0].id;
-      console.log(answers.addEmployeeManager);
-      db.query(
-        `SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = ?;`,
-        [answers.addEmployeeManager],
-        function (err, results) {
-          if (err) {
-            console.error(err);
-            return;
-          }
-          if (results.length === 0) {
-            console.error("Manager not found.");
-            return;
-          }
-          const managerId = results[0].id;
-          db.query(
-            `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);`,
-            [
-              answers.addEmployeeFirstName,
-              answers.addEmployeeLastName,
-              roleId,
-              managerId,
-            ],
-            function (err) {
-              if (err) {
-                console.error(err);
-                return;
-              }
-              console.log(
-                `${answers.addEmployeeFirstName} ${answers.addEmployeeLastName} has been added as a new employee.`
-              );
-              reInit();
+
+      let managerId = null; // Initialize managerId as null
+
+      if (answers.addEmployeeManager !== "None") {
+        db.query(
+          `SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = ?;`,
+          [answers.addEmployeeManager],
+          function (err, results) {
+            if (err) {
+              console.error(err);
+              return;
             }
-          );
-        }
-      );
+            if (results.length === 0) {
+              console.error("Manager not found.");
+              return;
+            }
+            managerId = results[0].id;
+            insertEmployee(); // Proceed to insert the employee once managerId is determined
+          }
+        );
+      } else {
+        insertEmployee(); // If manager is "None", directly proceed to insert the employee
+      }
+
+      function insertEmployee() {
+        db.query(
+          `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);`,
+          [
+            answers.addEmployeeFirstName,
+            answers.addEmployeeLastName,
+            roleId,
+            managerId,
+          ],
+          function (err) {
+            if (err) {
+              console.error(err);
+              return;
+            }
+            console.log(
+              `${answers.addEmployeeFirstName} ${answers.addEmployeeLastName} has been added as a new employee.`
+            );
+            reInit();
+          }
+        );
+      }
     }
   );
 }
