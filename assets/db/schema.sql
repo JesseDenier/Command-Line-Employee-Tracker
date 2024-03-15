@@ -1,5 +1,5 @@
 -- Creates a brand new database
-DROP DATABASE IF EXISTS emploee_tracker_db;
+DROP DATABASE IF EXISTS employee_tracker_db;
 CREATE DATABASE employee_tracker_db;
 
 -- Focuses future commands to work within the new database.
