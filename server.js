@@ -1,4 +1,4 @@
-//TODO: Write notation
+// Imports node modules.
 const inquirer = require("inquirer");
 const mysql = require("mysql2");
 const express = require("express");
@@ -8,7 +8,11 @@ const {
   printDepartments,
   printRoles,
   printEmployees,
-} = require("./printFunctions");
+} = require("./assets/js/printFunctions");
+
+const { addDepartment } = require("./assets/js/addFunctions");
+
+const { deleteDepartment } = require("./assets/js/deleteFunctions");
 
 //TODO: Write notation
 const PORT = process.env.PORT || 3001;
@@ -37,9 +41,14 @@ async function pickaction(answers) {
     printRoles(db, reInit);
   } else if (answers.action === "View all employees") {
     printEmployees(db, reInit);
+  } else if (answers.action === "Add a department") {
+    addDepartment(answers, db, reInit);
+  } else if (answers.action === "Delete a department") {
+    deleteDepartment(answers, db, reInit);
   }
 }
 
+// Checks if the user is done or has more tasks to complete.
 function reInit() {
   inquirer
     .prompt([
@@ -60,7 +69,7 @@ function reInit() {
     });
 }
 
-// Asks the user for choices regarding logo creation and then runs all logo creation functions.
+// On application load asks the user what task they need to complete.
 async function init() {
   inquirer
     .prompt([
@@ -76,7 +85,22 @@ async function init() {
           "Add a role",
           "Add an employee",
           "Update an employee role",
+          "Delete a department",
         ],
+      },
+      {
+        name: "addDepartmentName",
+        message: "What is the name of the new department?",
+        type: "maxLength",
+        maxLength: 15,
+        when: (answers) => answers.action === "Add a department",
+      },
+      {
+        name: "deleteDepartmentName",
+        message: "What department would you like to delete?",
+        type: "maxLength",
+        maxLength: 15,
+        when: (answers) => answers.action === "Delete a department",
       },
     ])
     .then((answers) => {
@@ -85,7 +109,6 @@ async function init() {
 }
 
 init();
-
 //TODO: Add notation.
 //TODO: Stop blocking this out but keep it from messing up init.
 // app.listen(PORT, () => {
