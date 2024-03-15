@@ -27,11 +27,8 @@ const {
 } = require("./assets/js/updateFunctions");
 const { printDepartmentBudget } = require("./assets/js/budgetFunctions");
 
-//TODO: Write notation
-const PORT = process.env.PORT || 3001;
+// Sets up Express app to handle URL encoded and JSON data parsing.
 const app = express();
-
-//TODO: Write notation
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
@@ -46,70 +43,8 @@ const db = mysql.createConnection(
   console.log(`Connected to the employee_tracker_db database.`)
 );
 
-//! This may not be working perfectly if the order of departmentNames doesn't always go by ID.
-function convertNametoID(answers, departmentNames) {
-  for (let i = 0; i < departmentNames.length; i++)
-    if (answers.addRoleDepartment === departmentNames[i]) {
-      answers.addRoleDepartment = i + 1;
-      break;
-    }
-  for (let i = 0; i < departmentNames.length; i++)
-    if (answers.viewEmployeesDepartmentName === departmentNames[i]) {
-      answers.viewEmployeesDepartmentName = i + 1;
-      break;
-    }
-  for (let i = 0; i < departmentNames.length; i++)
-    if (answers.viewDepartmentBudgetDepartmentName === departmentNames[i]) {
-      answers.viewDepartmentBudgetDepartmentName = i + 1;
-      break;
-    }
-  return answers;
-}
-
-//! This may not be working perfectly if the order of roleTitles doesn't always go by ID.
-function convertTitletoID(answers, roleTitles) {
-  for (let i = 0; i < roleTitles.length; i++)
-    if (answers.addEmployeeRole === roleTitles[i]) {
-      answers.addEmployeeRole = i + 1;
-      break;
-    }
-  for (let i = 0; i < roleTitles.length; i++)
-    if (answers.updateEmployeeRoleRoleTitle === roleTitles[i]) {
-      answers.updateEmployeeRoleRoleTitle = i + 1;
-      break;
-    }
-  return answers;
-}
-
-//! This may not be working perfectly if the order of roleTitles doesn't always go by ID.
-//! This could likely better follow DRY principles.
-function convertFullNametoID(answers, employeeNames) {
-  for (let i = 0; i < employeeNames.length; i++)
-    if (answers.addEmployeeManager === employeeNames[i]) {
-      answers.addEmployeeManager = i + 1;
-      break;
-    }
-  if (answers.addEmployeeManager === "None") {
-    answers.addEmployeeManager = null;
-  }
-  for (let i = 0; i < employeeNames.length; i++)
-    if (answers.updateEmployeeManagerManagerName === employeeNames[i]) {
-      answers.updateEmployeeManagerManagerName = i + 1;
-      break;
-    }
-  if (answers.updateEmployeeManagerManagerName === "None") {
-    answers.updateEmployeeManagerManagerName = null;
-  }
-  for (let i = 0; i < employeeNames.length; i++)
-    if (answers.viewEmployeesManagerName === employeeNames[i]) {
-      answers.viewEmployeesManagerName = i + 1;
-      break;
-    }
-  return answers;
-}
-
 // Selects a function based on answers to the prompt.
-async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
+async function pickaction(answers) {
   if (answers.action === "View all departments") {
     printDepartments(db, reInit);
   } else if (answers.action === "View all roles") {
@@ -117,28 +52,20 @@ async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
   } else if (answers.action === "View all employees") {
     printEmployees(db, reInit);
   } else if (answers.action === "View employees by manager") {
-    convertFullNametoID(answers, employeeNames);
     printEmployeesbyManager(answers, db, reInit);
   } else if (answers.action === "View employees by department") {
-    convertNametoID(answers, departmentNames);
     printEmployeesbyDepartment(answers, db, reInit);
   } else if (answers.action === "View department budget") {
-    //convertNametoID(answers, departmentNames);
     printDepartmentBudget(answers, db, reInit);
   } else if (answers.action === "Add a department") {
     addDepartment(answers, db, reInit);
   } else if (answers.action === "Add a role") {
-    convertNametoID(answers, departmentNames);
     addRole(answers, db, reInit);
   } else if (answers.action === "Add an employee") {
-    convertTitletoID(answers, roleTitles);
-    convertFullNametoID(answers, employeeNames);
     addEmployee(answers, db, reInit);
   } else if (answers.action === "Update an employee role") {
-    convertTitletoID(answers, roleTitles);
     updateEmployeeRole(answers, db, reInit);
   } else if (answers.action === "Update an employee manager") {
-    convertFullNametoID(answers, employeeNames);
     updateEmployeeManager(answers, db, reInit);
   } else if (answers.action === "Delete a department") {
     deleteDepartment(answers, db, reInit);
@@ -164,21 +91,18 @@ function reInit() {
       if (answers.reinit === "Yes") {
         init();
       } else {
-        //TODO: Change this so it automatically exits for you.
         console.log("Press 'control + c' to exit.");
       }
     });
 }
 
-// On application load asks the user what task they need to complete.
+// On application load or after completing a task asks the user what task they want to complete.
 async function init() {
   // Gets db names for list style questions that require them.
   db.query(`SELECT name FROM department;`, (err, result) => {
     const departmentNames = result.map((department) => department.name);
-
     db.query(`SELECT title FROM role;`, (err, result) => {
       const roleTitles = result.map((role) => role.title);
-
       db.query(
         `SELECT CONCAT(first_name, " ", last_name) AS full_name FROM employee;`,
         (err, result) => {
@@ -236,19 +160,41 @@ async function init() {
               {
                 name: "addDepartmentName",
                 message: "What is the name of the new department?",
-                type: "input",
+                type: "maxLength",
+                maxLength: 30,
+                validate: function (input) {
+                  if (input.trim() === "") {
+                    return "Please enter a department name.";
+                  }
+                  return true;
+                },
                 when: (answers) => answers.action === "Add a department",
               },
               {
                 name: "addRoleTitle",
                 message: "What is the title of the new role?",
-                type: "input",
+                type: "maxLength",
+                maxLength: 30,
+                validate: function (input) {
+                  if (input.trim() === "") {
+                    return "Please enter a role title.";
+                  }
+                  return true;
+                },
                 when: (answers) => answers.action === "Add a role",
               },
               {
                 name: "addRoleSalary",
                 message: "What is the salary of the new role?",
                 type: "input",
+                validate: function (value) {
+                  // Check if the input is a number
+                  if (!isNaN(parseFloat(value)) && isFinite(value)) {
+                    return true;
+                  } else {
+                    return "Please enter a valid number without any punctuation.";
+                  }
+                },
                 when: (answers) => answers.action === "Add a role",
               },
               {
@@ -263,6 +209,12 @@ async function init() {
                 message: "What is the employee's first name?",
                 type: "maxLength",
                 maxLength: 30,
+                validate: function (input) {
+                  if (input.trim() === "") {
+                    return "Please enter a name.";
+                  }
+                  return true;
+                },
                 when: (answers) => answers.action === "Add an employee",
               },
               {
@@ -270,6 +222,12 @@ async function init() {
                 message: "What is the employee's last name?",
                 type: "maxLength",
                 maxLength: 30,
+                validate: function (input) {
+                  if (input.trim() === "") {
+                    return "Please enter a name.";
+                  }
+                  return true;
+                },
                 when: (answers) => answers.action === "Add an employee",
               },
               {
@@ -339,7 +297,7 @@ async function init() {
               },
             ])
             .then((answers) => {
-              pickaction(answers, departmentNames, roleTitles, employeeNames);
+              pickaction(answers);
             });
         }
       );
@@ -348,9 +306,3 @@ async function init() {
 }
 
 init();
-
-//TODO: Add notation.
-//TODO: Stop blocking this out but keep it from messing up init.
-// app.listen(PORT, () => {
-//   console.log(`Server running on port ${PORT}`);
-// });

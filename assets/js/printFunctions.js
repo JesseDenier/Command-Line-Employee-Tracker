@@ -1,5 +1,4 @@
-//! Alot of this was created with CHATGPT to get the console.log styling correct.
-// Prints all departments in a nicely formatted box.
+// Prints all departments in a nice table.
 async function printDepartments(db, reInit) {
   db.query("SELECT id, name FROM department", function (err, results) {
     if (err) {
@@ -18,7 +17,7 @@ async function printDepartments(db, reInit) {
   });
 }
 
-// Prints all roles in a nicely formatted box.
+// Prints all roles in a nice table.
 async function printRoles(db, reInit) {
   db.query(
     "SELECT role.id, role.title, role.salary, department.name AS department FROM role JOIN department ON role.department_id = department.id",
@@ -44,7 +43,9 @@ async function printRoles(db, reInit) {
   );
 }
 
-// Prints all employees in a nicely formatted box.
+// Prints all employees in a nice table that adjusts column width based on longest values.
+//! Much of this was written by ChatGPT due to the formatting being very challenging.
+//! Please let me know if there is a better way to do this.
 async function printEmployees(db, reInit) {
   db.query(
     "SELECT employee.id, CONCAT(employee.first_name, ' ', employee.last_name) as name, CONCAT(manager.first_name, ' ', manager.last_name) AS manager, role.title AS title, role.salary AS salary, department.name AS department FROM employee LEFT JOIN employee AS manager ON employee.manager_id = manager.id JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id",
@@ -53,7 +54,6 @@ async function printEmployees(db, reInit) {
         console.error(err);
         return;
       }
-
       // Find maximum lengths for each column
       const maxLengths = {
         id: 0,
@@ -68,7 +68,6 @@ async function printEmployees(db, reInit) {
           maxLengths[key] = Math.max(maxLengths[key], String(row[key]).length);
         });
       });
-
       // Console log header
       console.log(
         "+" +
@@ -107,7 +106,6 @@ async function printEmployees(db, reInit) {
           "-".repeat(maxLengths.department + 2) +
           "+"
       );
-
       // Console log rows
       results.forEach((row) => {
         const { id, name, manager, title, salary, department } = row;
@@ -123,7 +121,6 @@ async function printEmployees(db, reInit) {
           )} |`
         );
       });
-
       // Console log footer
       console.log(
         "+" +
@@ -145,10 +142,10 @@ async function printEmployees(db, reInit) {
   );
 }
 
-// Prints employees of a specific manager.
+// Prints employees of a specific manager in a nice table.
 async function printEmployeesbyManager(answers, db, reInit) {
   db.query(
-    `SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee WHERE manager_id = ?;`,
+    `SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = ?;`,
     [answers.viewEmployeesManagerName],
     function (err, results) {
       if (err) {
@@ -156,26 +153,43 @@ async function printEmployeesbyManager(answers, db, reInit) {
         return;
       }
       if (results.length === 0) {
-        console.log(`No employees work under this employee.`);
-      } else {
-        console.log("+----+--------------------+");
-        console.log("| id | name               |");
-        console.log("+----+--------------------+");
-        results.forEach((row) => {
-          const { id, name } = row;
-          console.log(`| ${id.toString().padStart(2)} | ${name.padEnd(18)} |`);
-        });
-        console.log("+----+--------------------+");
+        console.error("Role not found.");
+        return;
       }
-      reInit();
+      const managerId = results[0].id;
+      db.query(
+        `SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee WHERE manager_id = ?;`,
+        [managerId],
+        function (err, results) {
+          if (err) {
+            console.error(err);
+            return;
+          }
+          if (results.length === 0) {
+            console.log(`No employees work under this employee.`);
+          } else {
+            console.log("+----+--------------------+");
+            console.log("| id | name               |");
+            console.log("+----+--------------------+");
+            results.forEach((row) => {
+              const { id, name } = row;
+              console.log(
+                `| ${id.toString().padStart(2)} | ${name.padEnd(18)} |`
+              );
+            });
+            console.log("+----+--------------------+");
+          }
+          reInit();
+        }
+      );
     }
   );
 }
 
-// Prints employees of a specific department.
+// Prints employees of a specific department in a nice table.
 async function printEmployeesbyDepartment(answers, db, reInit) {
   db.query(
-    `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id WHERE department_id = ?;`,
+    `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS name FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id WHERE department.name = ?;`,
     [answers.viewEmployeesDepartmentName],
     function (err, results) {
       if (err) {
