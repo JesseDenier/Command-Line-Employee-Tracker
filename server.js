@@ -25,6 +25,7 @@ const {
   updateEmployeeRole,
   updateEmployeeManager,
 } = require("./assets/js/updateFunctions");
+const { printDepartmentBudget } = require("./assets/js/budgetFunctions");
 
 //TODO: Write notation
 const PORT = process.env.PORT || 3001;
@@ -55,6 +56,11 @@ function convertNametoID(answers, departmentNames) {
   for (let i = 0; i < departmentNames.length; i++)
     if (answers.viewEmployeesDepartmentName === departmentNames[i]) {
       answers.viewEmployeesDepartmentName = i + 1;
+      break;
+    }
+  for (let i = 0; i < departmentNames.length; i++)
+    if (answers.viewDepartmentBudgetDepartmentName === departmentNames[i]) {
+      answers.viewDepartmentBudgetDepartmentName = i + 1;
       break;
     }
   return answers;
@@ -116,6 +122,9 @@ async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
   } else if (answers.action === "View employees by department") {
     convertNametoID(answers, departmentNames);
     printEmployeesbyDepartment(answers, db, reInit);
+  } else if (answers.action === "View department budget") {
+    //convertNametoID(answers, departmentNames);
+    printDepartmentBudget(answers, db, reInit);
   } else if (answers.action === "Add a department") {
     addDepartment(answers, db, reInit);
   } else if (answers.action === "Add a role") {
@@ -187,6 +196,7 @@ async function init() {
                   "View all employees",
                   "View employees by manager",
                   "View employees by department",
+                  "View department budget",
                   "Add a department",
                   "Add a role",
                   "Add an employee",
@@ -214,6 +224,14 @@ async function init() {
                 choices: departmentNames,
                 when: (answers) =>
                   answers.action === "View employees by department",
+              },
+              {
+                name: "viewDepartmentBudgetDepartmentName",
+                message:
+                  "Which department would you like to see the total budget of?",
+                type: "list",
+                choices: departmentNames,
+                when: (answers) => answers.action === "View department budget",
               },
               {
                 name: "addDepartmentName",
