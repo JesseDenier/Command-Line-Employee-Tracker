@@ -31,10 +31,9 @@ async function updateEmployeeRole(answers, db, reInit) {
   );
 }
 
-// Updates an employee's role in the employee table.
+// Updates an employee's manager in the employee table (If no manager is seleted sets the value to null).
 async function updateEmployeeManager(answers, db, reInit) {
   let managerId = null; // Initialize managerId as null
-
   if (answers.updateEmployeeManagerManagerName !== "None") {
     db.query(
       `SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = ?;`,

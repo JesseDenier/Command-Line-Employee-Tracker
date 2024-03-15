@@ -27,11 +27,11 @@ const {
 } = require("./assets/js/updateFunctions");
 const { printDepartmentBudget } = require("./assets/js/budgetFunctions");
 
-//TODO: Write notation
+// Configures PORT either as an environment variable or defaults to 3001 for local use.
 const PORT = process.env.PORT || 3001;
-const app = express();
 
-//TODO: Write notation
+// Sets up Express app to handle URL encoded and JSON data parsing.
+const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
@@ -47,7 +47,7 @@ const db = mysql.createConnection(
 );
 
 // Selects a function based on answers to the prompt.
-async function pickaction(answers, departmentNames, roleTitles, employeeNames) {
+async function pickaction(answers) {
   if (answers.action === "View all departments") {
     printDepartments(db, reInit);
   } else if (answers.action === "View all roles") {
@@ -94,21 +94,18 @@ function reInit() {
       if (answers.reinit === "Yes") {
         init();
       } else {
-        //TODO: Change this so it automatically exits for you.
         console.log("Press 'control + c' to exit.");
       }
     });
 }
 
-// On application load asks the user what task they need to complete.
+// On application load or after completing a task asks the user what task they want to complete.
 async function init() {
   // Gets db names for list style questions that require them.
   db.query(`SELECT name FROM department;`, (err, result) => {
     const departmentNames = result.map((department) => department.name);
-
     db.query(`SELECT title FROM role;`, (err, result) => {
       const roleTitles = result.map((role) => role.title);
-
       db.query(
         `SELECT CONCAT(first_name, " ", last_name) AS full_name FROM employee;`,
         (err, result) => {
@@ -269,7 +266,7 @@ async function init() {
               },
             ])
             .then((answers) => {
-              pickaction(answers, departmentNames, roleTitles, employeeNames);
+              pickaction(answers);
             });
         }
       );
@@ -277,10 +274,9 @@ async function init() {
   });
 }
 
-init();
+// On start tells the port and this application to listen for requests.
+app.listen(PORT, () => {
+  console.log(`App listening on http://localhost:${PORT}`);
+});
 
-//TODO: Add notation.
-//TODO: Stop blocking this out but keep it from messing up init.
-// app.listen(PORT, () => {
-//   console.log(`Server running on port ${PORT}`);
-// });
+init();

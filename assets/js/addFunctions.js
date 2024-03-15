@@ -32,7 +32,6 @@ async function addRole(answers, db, reInit) {
         return;
       }
       const departmentId = results[0].id;
-
       // Insert the role with the correct department_id
       db.query(
         `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?);`,
@@ -66,9 +65,8 @@ async function addEmployee(answers, db, reInit) {
         return;
       }
       const roleId = results[0].id;
-
-      let managerId = null; // Initialize managerId as null
-
+      // Retrieve the manager id corresponding to the given manager name (If no manager is seleted sets the value to null).
+      let managerId = null;
       if (answers.addEmployeeManager !== "None") {
         db.query(
           `SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = ?;`,
@@ -83,13 +81,12 @@ async function addEmployee(answers, db, reInit) {
               return;
             }
             managerId = results[0].id;
-            insertEmployee(); // Proceed to insert the employee once managerId is determined
+            insertEmployee();
           }
         );
       } else {
-        insertEmployee(); // If manager is "None", directly proceed to insert the employee
+        insertEmployee();
       }
-
       function insertEmployee() {
         db.query(
           `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);`,
