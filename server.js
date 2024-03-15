@@ -10,9 +10,9 @@ const {
   printEmployees,
 } = require("./assets/js/printFunctions");
 
-const { addDepartment } = require("./assets/js/addFunctions");
+const { addDepartment, addRole } = require("./assets/js/addFunctions");
 
-const { deleteDepartment } = require("./assets/js/deleteFunctions");
+const { deleteDepartment, deleteRole } = require("./assets/js/deleteFunctions");
 
 //TODO: Write notation
 const PORT = process.env.PORT || 3001;
@@ -43,8 +43,12 @@ async function pickaction(answers) {
     printEmployees(db, reInit);
   } else if (answers.action === "Add a department") {
     addDepartment(answers, db, reInit);
+  } else if (answers.action === "Add a role") {
+    addRole(answers, db, reInit);
   } else if (answers.action === "Delete a department") {
     deleteDepartment(answers, db, reInit);
+  } else if (answers.action === "Delete a role") {
+    deleteRole(answers, db, reInit);
   }
 }
 
@@ -71,45 +75,75 @@ function reInit() {
 
 // On application load asks the user what task they need to complete.
 async function init() {
-  // Gets all the database names for list style questions that require them.
+  // Gets db names for list style questions that require them.
   db.query(`SELECT name FROM department;`, (err, result) => {
     const departmentNames = result.map((department) => department.name);
+    db.query(`SELECT title FROM role;`, (err, result) => {
+      const roleTitles = result.map((role) => role.title);
 
-    inquirer
-      .prompt([
-        {
-          name: "action",
-          message: "What would you like to do?",
-          type: "list",
-          choices: [
-            "View all departments",
-            "View all roles",
-            "View all employees",
-            "Add a department",
-            "Add a role",
-            "Add an employee",
-            "Update an employee role",
-            "Delete a department",
-          ],
-        },
-        {
-          name: "addDepartmentName",
-          message: "What is the name of the new department?",
-          type: "maxLength",
-          maxLength: 15,
-          when: (answers) => answers.action === "Add a department",
-        },
-        {
-          name: "deleteDepartmentName",
-          message: "Which department would you like to delete?",
-          type: "list",
-          choices: departmentNames,
-          when: (answers) => answers.action === "Delete a department",
-        },
-      ])
-      .then((answers) => {
-        pickaction(answers);
-      });
+      inquirer
+        .prompt([
+          {
+            name: "action",
+            message: "What would you like to do?",
+            type: "list",
+            choices: [
+              "View all departments",
+              "View all roles",
+              "View all employees",
+              "Add a department",
+              "Add a role",
+              "Add an employee",
+              "Update an employee role",
+              "Delete a department",
+              "Delete a role",
+            ],
+          },
+          {
+            name: "addDepartmentName",
+            message: "What is the name of the new department?",
+            type: "input",
+            when: (answers) => answers.action === "Add a department",
+          },
+          {
+            name: "addRoleTitle",
+            message: "What is the title of the new role?",
+            type: "input",
+            when: (answers) => answers.action === "Add a role",
+          },
+          {
+            name: "addRoleSalary",
+            message: "What is the salary of the new role?",
+            type: "input",
+            when: (answers) => answers.action === "Add a role",
+          },
+          //TODO: This breaks because department.name is not an INT. Need to figure out how to reverse engineer this back to a department.id.
+          {
+            name: "addRoleDepartment",
+            message: "What department is the new role in?",
+            type: "list",
+            choices: departmentNames,
+            when: (answers) => answers.action === "Add a role",
+          },
+          {
+            name: "deleteDepartmentName",
+            message: "Which department would you like to delete?",
+            type: "list",
+            choices: departmentNames,
+            when: (answers) => answers.action === "Delete a department",
+          },
+          {
+            name: "deleteRoleTitle",
+            message: "Which role would you like to delete?",
+            type: "list",
+            choices: roleTitles,
+            when: (answers) => answers.action === "Delete a role",
+          },
+        ])
+        .then((answers) => {
+          pickaction(answers);
+        });
+    });
   });
 }
 

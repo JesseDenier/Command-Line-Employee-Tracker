@@ -16,4 +16,19 @@ async function deleteDepartment(answers, db, reInit) {
   );
 }
 
-module.exports = { deleteDepartment };
+async function deleteRole(answers, db, reInit) {
+  db.query(
+    `DELETE FROM role WHERE title = ?;`,
+    [answers.deleteRoleTitle],
+    function (err) {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      console.log(`${answers.deleteRoleTitle} has been deleted as a role.`);
+      reInit();
+    }
+  );
+}
+
+module.exports = { deleteDepartment, deleteRole };
